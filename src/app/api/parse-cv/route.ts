@@ -1,33 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-import { pathToFileURL } from "url";
-import type { TextItem } from "pdfjs-dist/types/src/display/api";
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic();
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
-  // pdfjs-dist recommends the legacy build for Node.js / serverless environments —
-  // the standard build assumes browser globals (DOMMatrix, etc.) that Node omits.
-  const { getDocument, GlobalWorkerOptions } = await import(
-    "pdfjs-dist/legacy/build/pdf.mjs"
-  );
-  GlobalWorkerOptions.workerSrc = pathToFileURL(
-    path.join(process.cwd(), "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs")
-  ).href;
+  const base64 = buffer.toString("base64");
 
-  const doc = await getDocument({ data: new Uint8Array(buffer) }).promise;
-  const pageTexts: string[] = [];
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 4096,
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "document",
+            source: {
+              type: "base64",
+              media_type: "application/pdf",
+              data: base64,
+            },
+          },
+          {
+            type: "text",
+            text: "Extract all text from this CV/resume document. Return only the raw extracted text, preserving the structure as much as possible. Do not add any commentary or formatting.",
+          },
+        ],
+      },
+    ],
+  });
 
-  for (let i = 1; i <= doc.numPages; i++) {
-    const page = await doc.getPage(i);
-    const content = await page.getTextContent();
-    const pageText = content.items
-      .filter((item): item is TextItem => "str" in item)
-      .map((item) => item.str)
-      .join(" ");
-    pageTexts.push(pageText);
+  const content = message.content[0];
+  if (content.type !== "text") {
+    throw new Error("Unexpected response type from Claude");
   }
-
-  await doc.destroy();
-  return pageTexts.join("\n\n");
+  return content.text;
 }
 
 export async function POST(req: NextRequest) {
