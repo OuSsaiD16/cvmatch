@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import JobSuggestions from "./JobSuggestions";
 
 interface Analysis {
   score: number;
@@ -41,7 +42,7 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-export default function AnalysisResult({ analysis }: { analysis: Analysis }) {
+export default function AnalysisResult({ analysis, cv }: { analysis: Analysis; cv: string }) {
   const [copied, setCopied] = useState(false);
 
   const scoreLabel =
@@ -185,6 +186,15 @@ export default function AnalysisResult({ analysis }: { analysis: Analysis }) {
           Your #1 Improvement
         </h3>
         <p className="text-amber-800 text-sm leading-relaxed">{analysis.tip}</p>
+      </div>
+
+      {/* Find Matching Jobs */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-card">
+        <JobSuggestions
+          cv={cv}
+          matched_keywords={analysis.matched_keywords}
+          missing_keywords={analysis.missing_keywords}
+        />
       </div>
     </div>
   );

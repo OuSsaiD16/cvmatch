@@ -117,7 +117,7 @@ export default function AnalysisForm({ initialIsPro, initialCount }: AnalysisFor
             New analysis
           </button>
         </div>
-        <AnalysisResult analysis={result} />
+        <AnalysisResult analysis={result} cv={cv} />
       </div>
     );
   }
