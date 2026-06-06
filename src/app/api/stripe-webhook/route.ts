@@ -34,12 +34,10 @@ export async function POST(request: NextRequest) {
 
       await serviceClient
         .from("users_usage")
-        .upsert({
-          user_id: userId,
-          is_pro: true,
-          stripe_customer_id: session.customer as string,
-        })
-        .eq("user_id", userId);
+        .upsert(
+          { user_id: userId, is_pro: true, stripe_customer_id: session.customer as string },
+          { onConflict: "user_id" }
+        );
 
       break;
     }
@@ -60,6 +58,18 @@ export async function POST(request: NextRequest) {
           .update({ is_pro: false })
           .eq("stripe_customer_id", customerId);
       }
+
+      break;
+    }
+
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId = invoice.customer as string;
+
+      await serviceClient
+        .from("users_usage")
+        .update({ is_pro: false })
+        .eq("stripe_customer_id", customerId);
 
       break;
     }

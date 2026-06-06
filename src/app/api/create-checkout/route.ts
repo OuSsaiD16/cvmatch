@@ -41,8 +41,7 @@ export async function POST(request: NextRequest) {
 
     await serviceClient
       .from("users_usage")
-      .upsert({ user_id: user.id, stripe_customer_id: customerId })
-      .eq("user_id", user.id);
+      .upsert({ user_id: user.id, stripe_customer_id: customerId }, { onConflict: "user_id" });
   }
 
   const session = await stripe.checkout.sessions.create({
