@@ -14,8 +14,10 @@ export async function POST(req: NextRequest) {
     let text = "";
 
     if (fileName.endsWith(".pdf")) {
-      const pdfParse = (await import("pdf-parse")).default;
-      const data = await pdfParse(buffer);
+      const { PDFParse } = await import("pdf-parse");
+      const parser = new PDFParse({ data: buffer });
+      const data = await parser.getText();
+      await parser.destroy();
       text = data.text;
     } else if (fileName.endsWith(".docx")) {
       const mammoth = await import("mammoth");
