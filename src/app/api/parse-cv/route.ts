@@ -14,10 +14,8 @@ export async function POST(req: NextRequest) {
     let text = "";
 
     if (fileName.endsWith(".pdf")) {
-      const { PDFParse } = await import("pdf-parse");
-      const parser = new PDFParse({ data: buffer });
-      const data = await parser.getText();
-      await parser.destroy();
+      const pdfParse = (await import("pdf-parse")).default;
+      const data = await pdfParse(buffer);
       text = data.text;
     } else if (fileName.endsWith(".docx")) {
       const mammoth = await import("mammoth");
@@ -28,7 +26,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ text: text.trim() });
-  } catch {
+  } catch (err) {
+    console.error("CV parse error:", err);
     return NextResponse.json({ error: "Failed to parse file. Please try again." }, { status: 500 });
   }
 }
