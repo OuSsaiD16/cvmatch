@@ -34,10 +34,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
+      console.error("Failed to insert users_usage row:", insertError);
       return NextResponse.json({ error: "Database error" }, { status: 500 });
     }
     usage = newUsage;
   } else if (usageError) {
+    console.error("Failed to fetch users_usage row:", usageError);
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
