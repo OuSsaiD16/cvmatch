@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { pathToFileURL } from "url";
+import type { TextItem } from "pdfjs-dist/types/src/display/api";
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   // pdfjs-dist recommends the legacy build for Node.js / serverless environments —
@@ -19,7 +20,8 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
     const pageText = content.items
-      .map((item) => ("str" in item ? (item as { str: string }).str : ""))
+      .filter((item): item is TextItem => "str" in item)
+      .map((item) => item.str)
       .join(" ");
     pageTexts.push(pageText);
   }
