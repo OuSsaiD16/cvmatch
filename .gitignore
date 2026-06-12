@@ -28,3 +28,7 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Daily content engine generated output
+/output/*.txt
+/output/*.json
